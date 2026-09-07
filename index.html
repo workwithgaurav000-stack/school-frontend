@@ -2652,6 +2652,19 @@
 
                     try {
 
+                        const controller =
+                            new AbortController();
+
+                        const requestTimeout =
+                            setTimeout(
+                                function() {
+
+                                    controller.abort();
+
+                                },
+                                30000
+                            );
+
                         const response =
                             await fetch(
                                 `${apiBaseUrl}/api/admission`,
@@ -2667,10 +2680,15 @@
                                     body:
                                         JSON.stringify(
                                             admissionData
-                                        )
+                                        ),
+
+                                    signal:
+                                        controller.signal
 
                                 }
                             );
+
+                        clearTimeout(requestTimeout);
 
 
 
@@ -2756,10 +2774,13 @@
 
                         console.error(error);
 
+                        const timeoutMessage =
+                            error.name === "AbortError"
+                                ? "The server took too long to respond. Please try again."
+                                : "Server से connection नहीं हो पाया। कृपया थोड़ी देर बाद फिर प्रयास करें।";
 
                         message.innerHTML =
-                            "❌ Server से connection नहीं हो पाया।<br>" +
-                            "कृपया backend server चालू करें।";
+                            "❌ " + timeoutMessage;
 
 
                         message.className =
